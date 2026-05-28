@@ -22,7 +22,8 @@ router.post("/", async (req, res, next) => {
   try {
     const { rows } = await pool.query(
       `INSERT INTO tasks (title, description, team_id, assignee_id, due_date, status, created_by)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id, title, description, team_id AS "teamId", assignee_id AS "assigneeId", due_date AS "dueDate", status, created_by AS "createdBy"`,
       [value.title, value.description || "", value.teamId, value.assigneeId || null,
        value.dueDate || null, value.status, req.user.id]
     );
@@ -52,7 +53,8 @@ router.get("/", async (req, res, next) => {
 
   try {
     const { rows } = await pool.query(
-      `SELECT t.* FROM tasks t WHERE ${conditions.join(" AND ")} ORDER BY t.created_at DESC`,
+      `SELECT t.id, t.title, t.description, t.team_id AS "teamId", t.assignee_id AS "assigneeId", t.due_date AS "dueDate", t.status, t.created_by AS "createdBy"
+       FROM tasks t WHERE ${conditions.join(" AND ")} ORDER BY t.created_at DESC`,
       params
     );
     res.json(rows);
@@ -68,7 +70,8 @@ router.put("/:id", async (req, res, next) => {
   try {
     const { rows } = await pool.query(
       `UPDATE tasks SET title=$1, description=$2, team_id=$3, assignee_id=$4, due_date=$5, status=$6
-       WHERE id=$7 RETURNING *`,
+       WHERE id=$7
+       RETURNING id, title, description, team_id AS "teamId", assignee_id AS "assigneeId", due_date AS "dueDate", status, created_by AS "createdBy"`,
       [value.title, value.description || "", value.teamId, value.assigneeId || null,
        value.dueDate || null, value.status, req.params.id]
     );

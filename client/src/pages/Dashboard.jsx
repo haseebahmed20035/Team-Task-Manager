@@ -76,7 +76,7 @@ export default function Dashboard () {
           selectedTeam={selectedTeam}
           onSelect={setSelectedTeam}
           onTeamsChanged={loadTeams}
-          currentUserId={user.uid}
+          currentUserId={user.id}
         />
 
         <main className='flex-1 bg-white rounded-lg shadow p-6'>
@@ -109,9 +109,9 @@ export default function Dashboard () {
                 className='px-3 py-2 border rounded'
               >
                 <option value=''>All assignees</option>
-                {team.members?.map(m => (
+                {selectedTeam.members?.map(m => (
                   <option key={m.id} value={m.id}>
-                    {m.displayName || m.email}
+                    {m.id === user.id ? "Me" : m.displayName || m.email}
                   </option>
                 ))}
               </select>

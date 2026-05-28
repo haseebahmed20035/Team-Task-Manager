@@ -57,8 +57,8 @@ export default function TaskModal({ team, task, onClose, onSaved }) {
         <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)}
           className="w-full px-3 py-2 border rounded mb-3">
           <option value="">Unassigned</option>
-          {team.members?.map((uid) => (
-            <option key={uid} value={uid}>{uid.slice(0, 12)}...</option>
+          {team.members?.map((m) => (
+            <option key={m.id} value={m.id}>{m.displayName || m.email}</option>
           ))}
         </select>
 

@@ -19,7 +19,7 @@ router.post("/", async (req, res, next) => {
   try {
     await client.query("BEGIN");
     const { rows } = await client.query(
-      "INSERT INTO teams (name, description, created_by) VALUES ($1, $2, $3) RETURNING *",
+      "INSERT INTO teams (name, description, created_by) VALUES ($1, $2, $3) RETURNING id, name, description, created_by AS \"createdBy\"",
       [value.name, value.description || "", req.user.id]
     );
     const team = rows[0];
@@ -40,7 +40,7 @@ router.post("/", async (req, res, next) => {
 router.get("/", async (req, res, next) => {
   try {
     const { rows } = await pool.query(
-      `SELECT t.*,
+      `SELECT t.id, t.name, t.description, t.created_by AS "createdBy",
         COALESCE(
           (SELECT json_agg(json_build_object('id', u.id, 'email', u.email, 'displayName', u.display_name))
             FROM team_members tm JOIN users u ON u.id = tm.user_id WHERE tm.team_id = t.id),
