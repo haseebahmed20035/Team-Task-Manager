@@ -6,16 +6,17 @@ filtering by team or assignee.
 
 ## Live Demo
 
-- **Frontend:** https://YOUR-PROJECT.web.app
-- **Backend API:** https://YOUR-BACKEND-URL
+- **Frontend:** https://teamtaskmanager-141d5.web.app
+- **Backend API:** https://team-task-manager-production-8407.up.railway.app
 
 ## Tech Stack
 
 - **Frontend:** React 19, Vite, Tailwind CSS, React Router, Axios
 - **Backend:** Node.js, Express, Passport.js (LocalStrategy), bcrypt, Joi
-- **Database:** PostgreSQL (hosted on Neon / Google Cloud)
+- **Database:** PostgreSQL (hosted on Neon)
 - **Sessions:** express-session with connect-pg-simple (stored in PostgreSQL)
-- **Hosting:** Firebase Hosting (frontend), Cloud Run (backend)
+- **Hosting:** Firebase Hosting (frontend, Google Cloud) + Railway (backend)
+- **CI/CD:** GitHub Actions auto-deploys the frontend to Firebase Hosting on every push to `main`
 
 ## Authentication & Security
 
@@ -35,7 +36,7 @@ filtering by team or assignee.
 - Filter tasks by team and by assignee
 - Search tasks by title
 - Due dates with an overdue indicator
-- Responsive UI (mobile + desktop)
+- Responsive layout built with Tailwind (see mobile note below)
 
 ## Project Structure
 
@@ -46,7 +47,7 @@ Team-Task-Manager/
 │       ├── pages/          # Login, Register, Dashboard
 │       ├── components/     # TeamSidebar, TaskBoard, TaskModal
 │       ├── context/        # AuthContext
-│       ├── api.js          # axios instance (withCredentials)
+│       ├── api.js          # axios instance (withCredentials: true)
 │       └── main.jsx
 └── server/                 # Express backend
     ├── routes/             # auth, teams, tasks
@@ -92,7 +93,7 @@ cd client
 npm install
 ```
 
-Create `client/.env`:
+Create `client/.env` (for local development):
 
 ```
 VITE_API_URL=http://localhost:5000/api
@@ -104,9 +105,13 @@ npm run dev
 
 Frontend runs at http://localhost:5173
 
+> For production builds, `client/.env.production` sets `VITE_API_URL` to the
+> deployed backend URL.
+
 ## API Endpoints
 
-All non-auth routes require an authenticated session (cookie sent automatically).
+All non-auth routes require an authenticated session (cookie sent automatically
+via `withCredentials`).
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -131,5 +136,30 @@ All non-auth routes require an authenticated session (cookie sent automatically)
 
 ## Deployment
 
-- **Frontend:** `npm run build`, deployed to Firebase Hosting
-- **Backend:** Dockerized, deployed to Google Cloud Run with the same env vars
+- **Frontend:** built with `npm run build` and deployed to **Firebase Hosting**
+  (a Google Cloud service). A GitHub Actions workflow redeploys automatically on
+  every push to `main`.
+- **Backend:** deployed to **Railway** (a Dockerfile is included; the backend is
+  container-ready and can be deployed to Google Cloud Run with
+  `gcloud run deploy --source .`).
+
+### Note on the "deploy on GCP" requirement
+
+The frontend is hosted on Firebase Hosting, which is part of Google Cloud. The
+backend and database are on Railway and Neon respectively, because deploying to
+Cloud Run and Cloud SQL requires an active GCP billing account (credit card),
+which was not available. The application is fully containerized and cloud-agnostic;
+moving the backend to Cloud Run and the database to Cloud SQL would require only
+configuration changes, not code changes.
+
+## Known Limitation: Mobile Browsers
+
+The app uses express-session with HTTP-only cookies (per the spec). Because the
+frontend (Firebase Hosting) and backend (Railway) are on different domains, the
+session cookie is treated as third-party. Desktop browsers allow this, but some
+mobile browsers (notably iOS Safari) block third-party cookies by default,
+preventing login persistence on those devices.
+
+The robust fix is to serve frontend and backend from the same domain (so the
+cookie is first-party) or to switch to token-based auth (Authorization header,
+not subject to cookie blocking). This was not completed due to the time constraint.
