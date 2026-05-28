@@ -1,0 +1,6 @@
+serviceAccount.json
+server/serviceAccount.json
+node_modules/
+.env
+dist/
+.firebase/
